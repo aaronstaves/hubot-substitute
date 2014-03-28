@@ -1,9 +1,43 @@
-# Hubot Substitute
+# Hubot: hubot-substitute 
 
-This script will make hubot recognize substitute syntax (s/find/replace/modifiers).  It will reply to the user posted with the new next
+A regex find/replace watcher for Hubots
+
+See [`src/substitute.coffee`](src/substitute.coffee) for full documentation.
+
+## Installation
+
+Add **hubot-substitute** to your `package.json` file:
+
+```json
+"dependencies": {
+  "hubot": ">= 2.5.1",
+  "hubot-scripts": ">= 2.4.2",
+  "hubot-substitute": ">= 0.0.0",
+  "hubot-hipchat": "~2.5.1-5",
+}
+
+Add **hubot-simpsons** to your `external-scripts.json`:
+
+```json
+["hubot-simpsons"]
+```
+
+Run `npm install hubot-simpsons`
+
+## Sample Interaction
 
 ```
-aaronstaves> I could really go for a beer right now
-aaronstaves> s/beer/stout beer/
-Hubot> aaronstaves: I could really go for a stout beer right now
+aaron> I could really go for a beer right now
+aaron> s/beer/stout beer/
+Hubot> aaron: I could really go for a stout beer right now
+```
+```
+aaron> I can't wait until we get their
+aaron> s/their/there
+Hubot> aaron: I can't wait until we get there
+```
+```
+aaron> The cow goes woof woof
+aaron> s/woo/moo/g
+Hubot> aaron: The cow goes moof moof
 ```
