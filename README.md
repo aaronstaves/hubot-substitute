@@ -1,5 +1,7 @@
 # Hubot: hubot-substitute 
 
+[![Build Status](https://travis-ci.org/aaronstaves/hubot-substitute.svg?branch=master)](https://travis-ci.org/aaronstaves/hubot-substitute)
+
 A regex find/replace watcher for Hubots
 
 See [`src/substitute.coffee`](src/substitute.coffee) for full documentation.
