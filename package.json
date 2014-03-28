@@ -4,7 +4,6 @@
   "version": "0.1.0",
   "author": "Aaron Staves <aaron@aarons.io>",
   "license": "MIT",
-
   "keywords": [
     "hubot",
     "hubot-scripts",
@@ -13,19 +12,19 @@
     "regular",
     "expression"
   ],
-
   "repository": {
     "type": "git",
     "url": "git@github.com:aaronstaves/hubot-substitute.git"
   },
-
   "bugs": {
     "url": "https://github.com/aaronstaves/hubot-substitute/issues"
   },
-
   "dependencies": {
     "coffee-script": "~1.6"
   },
-
-  "main": "index.coffee"
+  "main": "index.coffee",
+  "homepage": "https://github.com/aaronstaves/hubot-substitute",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
 }
