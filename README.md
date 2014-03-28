@@ -15,14 +15,15 @@ Add **hubot-substitute** to your `package.json` file:
   "hubot-substitute": ">= 0.0.0",
   "hubot-hipchat": "~2.5.1-5",
 }
-
-Add **hubot-simpsons** to your `external-scripts.json`:
-
-```json
-["hubot-simpsons"]
 ```
 
-Run `npm install hubot-simpsons`
+Add **hubot-substitute** to your `external-scripts.json`:
+
+```json
+["hubot-substitute"]
+```
+
+Run `npm install hubot-substitute`
 
 ## Sample Interaction
 
