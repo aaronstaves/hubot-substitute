@@ -1,22 +1,24 @@
 {
-  "name": "hubot-example",
-  "description": "An example script pacakage for Hubot",
-  "version": "1.0.0",
-  "author": "Tom Bell <tomb@tomb.io>",
+  "name": "hubot-substitute",
+  "description": "Regex substitute script for hubot",
+  "version": "0.1.0",
+  "author": "Aaron Staves <aaron@aarons.io>",
   "license": "MIT",
 
   "keywords": [
     "hubot",
     "hubot-scripts"
+		"regex"
+		"substitute"
   ],
 
   "repository": {
     "type": "git",
-    "url": "git://github.com/hubot-scripts/hubot-example.git"
+    "url": "git@github.com:aaronstaves/hubot-substitute.git"
   },
 
   "bugs": {
-    "url": "https://github.com/hubot-scripts/hubot-example/issues"
+    "url": "https://github.com/aaronstaves/hubot-substitute/issues"
   },
 
   "dependencies": {
