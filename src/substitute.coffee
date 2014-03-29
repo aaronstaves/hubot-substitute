@@ -19,6 +19,26 @@ module.exports = (robot) ->
 
   # Stores last thing said by user, key is <user_id><room>
   lastSaid = {}
+  subRegex = RegExp(
+    # starts with s/
+    '^s\/'+
+
+    # <find> match any non / char
+    '([^(?<!\\)\/]+)'+
+
+    # match next / char so long as it isn't the
+    # last char in the string
+    '\/(?!$)'+
+
+    # <replace> match any non / char
+    '([^\/]*)'+
+
+    # optionally match /
+    '\/*'+
+
+    # <modifier> optionally match non / modifier char
+    '([^\/]*)*$'
+  );
 
   #
   # listens to EVERYTHING
@@ -28,7 +48,7 @@ module.exports = (robot) ->
     # Don't store any of the other commands
     if msg.match[1].match('what did i say')
       return
-    if msg.match[1].match(/^s\/([^\/]+)\/([^\/]+)\/*([^\/]+)*$/)
+    if msg.match[1].match(subRegex)
       return
 
     # Go ahead and store what they said
@@ -39,7 +59,8 @@ module.exports = (robot) ->
   #
   # listens to the regex s/find/replace/modifier
   #
-  robot.hear /^s\/([^\/]+)\/([^\/]+)\/*([^\/]+)*$/, (msg) ->
+  #robot.hear /^s\/([^\/]+)\/([^\/]*)\/*([^\/]*)*$/, (msg) ->
+  robot.hear subRegex, (msg) ->
   
     # grab the goodies
     replace    = msg.match[2]
@@ -59,9 +80,14 @@ module.exports = (robot) ->
       # nothing was replaced, regex didn't match
       if ( replaceText == origText ) 
         msg.send("#{username}: There is no substitute for trying")
+
       # display new text
       else
+        # remove any (unintended?) trailing whitespace
+        replaceText = replaceText.replace(/\s+$/, "")
+
         msg.send("#{username}: #{replaceText}")
+
     # no record of anything the user said
     else
       msg.send("#{username}: I have no idea what you last said")

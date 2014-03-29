@@ -46,99 +46,138 @@ describe("Hubot-Substitute Functionality", function() {
         robot.shutdown();
     });
 
-    /*
-    * hubot what did i say
-    */
-    // Ask Hubot what you said, without saying anything to it previously
-    //
-    it("responds to what did i say without previous input", function(done) {
-        var text = [randomWord(15),randomWord(12),randomWord(7)].join(' ');
+    describe("what did i say", function() { 
+      /*
+      * hubot what did i say
+      */
+      // Ask Hubot what you said, without saying anything to it previously
+      //
+      it("responds to what did i say without previous input", function(done) {
+          adapter.on("send", function(envelope, strings) {
+              try { 
+                expect(strings[0]).to.equal("I have no idea what you said");
+                done();
+              } catch(e) { 
+                done(e);
+              }
+          });
 
-        adapter.on("send", function(envelope, strings) {
-            try { 
-              expect(strings[0]).to.equal("I have no idea what you said");
-              done();
-            } catch(e) { 
-              done(e);
-            }
-        });
+        adapter.receive(new TextMessage(user, robot.name+" what did i say"));
+      });
 
-      adapter.receive(new TextMessage(user, robot.name+" what did i say"));
+      // Ask Hubot what you said, after saying something in the room
+      //
+      it("responds to what did i say with correct output", function(done) {
+          var text = [randomWord(15),randomWord(12),randomWord(7)].join(' ');
+
+          adapter.on("send", function(envelope, strings) {
+              try { 
+                expect(strings[0]).to.equal("You said: "+text);
+                done();
+              } catch(e) { 
+                done(e);
+              }
+          });
+
+        adapter.receive(new TextMessage(user, text)); 
+        adapter.receive(new TextMessage(user, robot.name+" what did i say"));
+      });
     });
 
-    // Ask Hubot what you said, after saying something in the room
-    //
-    it("responds to what did i say with correct output", function(done) {
-        var text = [randomWord(15),randomWord(12),randomWord(7)].join(' ');
+    describe("substitute patterns", function() { 
+      /*
+      * s/find/replace/modifier
+      */
+      // substitute beer for stout beer
+      //
+      it("s/beer/stout beer", function(done) {
+          adapter.on("send", function(envelope, strings) {
+              try { 
+                expect(strings[0]).to.equal(user.name+": I could really go for a stout beer right now");
+                done();
+              } catch(e) { 
+                done(e);
+              }
+          });
 
-        adapter.on("send", function(envelope, strings) {
-            try { 
-              expect(strings[0]).to.equal("You said: "+text);
-              done();
-            } catch(e) { 
-              done(e);
+        adapter.receive(new TextMessage(user, "I could really go for a beer right now"));
+        adapter.receive(new TextMessage(user, "s/beer/stout beer"));
+      });
+
+      // substitute their for their with a trailing forwardslash
+      //
+      it("s/their/there/", function(done) {
+          adapter.on("send", function(envelope, strings) {
+              try { 
+                expect(strings[0]).to.equal(user.name+": I can't wait until we get there");
+                done();
+              } catch(e) { 
+                done(e);
+              }
+          });
+
+        adapter.receive(new TextMessage(user, "I can't wait until we get their")); 
+        adapter.receive(new TextMessage(user, "s/their/there/"));
+      });
+
+      // substitute woof for moo globally
+      //
+      it("s/woof/moo/g", function(done) {
+          adapter.on("send", function(envelope, strings) {
+              try { 
+                expect(strings[0]).to.equal(user.name+": The cow goes moo moo");
+                done();
+              } catch(e) { 
+                done(e);
+              }
+          });
+
+        adapter.receive(new TextMessage(user, "The cow goes woof woof")); 
+        adapter.receive(new TextMessage(user, "s/woof/moo/g"));
+      });
+
+      // substitute remove found string
+      //
+      it("s/what does the fox say//g", function(done) {
+          adapter.on("send", function(envelope, strings) {
+              try { 
+                expect(strings[0]).to.equal(user.name+": sometimes i wonder");
+                done();
+              } catch(e) { 
+                done(e);
+              }
+          });
+
+        adapter.receive(new TextMessage(user, "sometimes i wonder what does the fox say")); 
+        adapter.receive(new TextMessage(user, "s/what does the fox say//g"));
+      });
+
+      // test bad regex
+      //
+      it("s/woof/", function(done) {
+          var replied = false;
+
+          // if doesn't reply we're good --
+          // there's probably a better way to do this, but for now
+          // it seems like 25ms is long enough to give the bot a 
+          // chance to reply
+          setTimeout(function() { 
+            if (replied) { 
+              done( new Error("replied when shouldn't have, no replace string") );
             }
-        });
-
-      adapter.receive(new TextMessage(user, text)); 
-      adapter.receive(new TextMessage(user, robot.name+" what did i say"));
-    });
-
-    /*
-    * s/find/replace/modifier
-    */
-    // substitute beer for stout beer
-    //
-    it("s/beer/stout beer", function(done) {
-        var text = [randomWord(15),randomWord(12),randomWord(7)].join(' ');
-
-        adapter.on("send", function(envelope, strings) {
-            try { 
-              expect(strings[0]).to.equal(user.name+": I could really go for a stout beer right now");
-              done();
-            } catch(e) { 
-              done(e);
+            else {
+              done(); 
             }
-        });
+          }, 25);
 
-      adapter.receive(new TextMessage(user, "I could really go for a beer right now"));
-      adapter.receive(new TextMessage(user, "s/beer/stout beer"));
-    });
+          // if it does reply, throw an error
+          adapter.on("send", function(envelope, strings) {
+            replied = true
+          });
 
-    // substitute their for their with a trailing forwardslash
-    //
-    it("s/their/there/", function(done) {
-        var text = [randomWord(15),randomWord(12),randomWord(7)].join(' ');
-
-        adapter.on("send", function(envelope, strings) {
-            try { 
-              expect(strings[0]).to.equal(user.name+": I can't wait until we get there");
-              done();
-            } catch(e) { 
-              done(e);
-            }
-        });
-
-      adapter.receive(new TextMessage(user, "I can't wait until we get their")); 
-      adapter.receive(new TextMessage(user, "s/their/there/"));
-    });
-
-    // substitute woof for moo globally
-    //
-    it("s/woof/moo/g", function(done) {
-        var text = [randomWord(15),randomWord(12),randomWord(7)].join(' ');
-
-        adapter.on("send", function(envelope, strings) {
-            try { 
-              expect(strings[0]).to.equal(user.name+": The cow goes moo moo");
-              done();
-            } catch(e) { 
-              done(e);
-            }
-        });
-
-      adapter.receive(new TextMessage(user, "The cow goes woof woof")); 
-      adapter.receive(new TextMessage(user, "s/woof/moo/g"));
+        adapter.receive(new TextMessage(user, "The cow goes woofmoo")); 
+        adapter.receive(new TextMessage(user, "s/woof/"));
+      });
     });
 });
 
