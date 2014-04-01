@@ -4,6 +4,9 @@ var path   = require("path");
 var Robot       = require("hubot/src/robot");
 var TextMessage = require("hubot/src/message").TextMessage;
 
+// new Robot creates some j
+//process.setMaxListeners(0);
+
 
 describe("Hubot-Substitute Functionality", function() {
     var robot;
@@ -14,7 +17,7 @@ describe("Hubot-Substitute Functionality", function() {
         // create new robot, without http, using the mock adapter
         robot = new Robot(null, "mock-adapter", false, "TestBot");
 
-        robot.adapter.on("connected", function() {
+        robot.adapter.on("connected", function() { 
             // only load scripts we absolutely need, like auth.coffee
             process.env.HUBOT_AUTH_ADMIN = "1";
             robot.loadFile(
@@ -38,7 +41,6 @@ describe("Hubot-Substitute Functionality", function() {
 
             setTimeout(done, 250);
         });
-
         robot.run();
     });
 
@@ -84,7 +86,7 @@ describe("Hubot-Substitute Functionality", function() {
       });
     });
 
-    describe("substitute patterns", function() { 
+    describe("valid substitute patterns", function() { 
       /*
       * s/find/replace/modifier
       */
@@ -152,6 +154,88 @@ describe("Hubot-Substitute Functionality", function() {
         adapter.receive(new TextMessage(user, "s/what does the fox say//g"));
       });
 
+      // string with escaped chars
+      //
+      it("s/\\\\/ith\/g", function(done) {
+          adapter.on("send", function(envelope, strings) {
+              try { 
+                expect(strings[0]).to.equal(user.name+": with or without");
+                done();
+              } catch(e) { 
+                done(e);
+              }
+          });
+
+        adapter.receive(new TextMessage(user, "w\\ or w\\out")); 
+        adapter.receive(new TextMessage(user, "s/\\\\/ith\/g"));
+      });
+
+      // string with more escaped chars
+      //
+      it("s/\\\//ith\/g", function(done) {
+          adapter.on("send", function(envelope, strings) {
+              try { 
+                expect(strings[0]).to.equal(user.name+": with or without");
+                done();
+              } catch(e) { 
+                done(e);
+              }
+          });
+
+        adapter.receive(new TextMessage(user, "w\/ or w\/out")); 
+        adapter.receive(new TextMessage(user, "s/\\\//ith\/g"));
+      });
+
+      // string with more multiple escaped chars
+      //
+      it("s/\\//slash/g", function(done) {
+          adapter.on("send", function(envelope, strings) {
+              try { 
+                expect(strings[0]).to.equal(user.name+": http:slashslashwww.dumped.comslash");
+                done();
+              } catch(e) { 
+                done(e);
+              }
+          });
+
+        adapter.receive(new TextMessage(user, "http://www.dumped.com/")); 
+        adapter.receive(new TextMessage(user, "s/\\//slash/g"));
+      });
+
+      // string with numbers 
+      //
+      it("s/\\d/number/g", function(done) {
+          adapter.on("send", function(envelope, strings) {
+              try { 
+                expect(strings[0]).to.equal(user.name+": Friday April numbernumberth, numbernumbernumbernumber");
+                done();
+              } catch(e) { 
+                done(e);
+              }
+          });
+
+        adapter.receive(new TextMessage(user, "Friday April 13th, 2014")); 
+        adapter.receive(new TextMessage(user, "s/\\d/number/g"));
+      });
+
+      // string with multiple match numbers 
+      //
+      it("s/\\d{4}/year/g", function(done) {
+          adapter.on("send", function(envelope, strings) {
+              try { 
+                expect(strings[0]).to.equal(user.name+": Friday April 13th, year");
+                done();
+              } catch(e) { 
+                done(e);
+              }
+          });
+
+        adapter.receive(new TextMessage(user, "Friday April 13th, 2014")); 
+        adapter.receive(new TextMessage(user, "s/\\d{4}/year/g"));
+      });
+     });
+
+    describe("invalid substitute patterns", function() { 
       // test bad regex
       //
       it("s/woof/", function(done) {
@@ -172,7 +256,7 @@ describe("Hubot-Substitute Functionality", function() {
 
           // if it does reply, throw an error
           adapter.on("send", function(envelope, strings) {
-            replied = true
+            replied = true;
           });
 
         adapter.receive(new TextMessage(user, "The cow goes woofmoo")); 

@@ -24,7 +24,7 @@ module.exports = (robot) ->
     '^s\/'+
 
     # <find> match any non / char
-    '([^(?<!\\)\/]+)'+
+    '(.+?)'+
 
     # match next / char so long as it isn't the
     # last char in the string
