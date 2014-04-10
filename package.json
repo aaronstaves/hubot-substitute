@@ -1,7 +1,7 @@
 {
   "name": "hubot-substitute",
   "description": "Regex substitute script for hubot",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "author": "Aaron Staves <aaron@aarons.io>",
   "license": "MIT",
   "keywords": [
