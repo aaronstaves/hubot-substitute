@@ -19,26 +19,7 @@ module.exports = (robot) ->
 
   # Stores last thing said by user, key is <user_id><room>
   lastSaid = {}
-  subRegex = RegExp(
-    # starts with s/
-    '^s\/'+
-
-    # <find> match any non / char
-    '(.+?)'+
-
-    # match next / char so long as it isn't the
-    # last char in the string
-    '\/(?!$)'+
-
-    # <replace> match any non / char
-    '([^\/]*)'+
-
-    # optionally match /
-    '\/*'+
-
-    # <modifier> optionally match non / modifier char
-    '([^\/]*)*$'
-  );
+  subRegex = RegExp('^s/.+');
 
   #
   # listens to EVERYTHING
@@ -59,15 +40,16 @@ module.exports = (robot) ->
   #
   # listens to the regex s/find/replace/modifier
   #
-  #robot.hear /^s\/([^\/]+)\/([^\/]*)\/*([^\/]*)*$/, (msg) ->
-  robot.hear subRegex, (msg) ->
+  robot.hear /^s\/.+/, (msg) ->
   
     # grab the goodies
-    replace    = msg.match[2]
-    modifier   = msg.match[3]
-    search     = RegExp(msg.match[1], modifier)
+    regExpObj = getRegExpObj(msg.match[0])
+    return if !regExpObj.isValid
 
-    # check unique id for user/room
+    replace    = regExpObj.replace
+    modifier   = regExpObj.modifier
+    search     = RegExp(regExpObj.search, modifier)
+
     userRoomId = getUserRoomId(msg)
 
     # hubot has something in mind
@@ -107,6 +89,94 @@ module.exports = (robot) ->
     else
       msg.send("I have no idea what you said")
 
+
+  # UTIL FUNCTIONS
+
+  #
+  #  getRegExpObj - Parses out a possible regex into a usable object
+  #
+  #  returns object
+  # { 
+  #   search : <search_regex>
+  #   replace: <replace_str> - may be blank
+  #   search : <modifier> - may be blank
+  #   isValid: true - true if valid, false if invalid
+  # }
+  #
+  getRegExpObj = (msg) ->
+
+    # Remove preceting s/
+    str = msg.replace(/^s\//,"")
+
+    # object we're gonna return
+    obj = 
+      search: ''
+      replace: ''
+      modifier: ''
+      isValid: false
+
+    # initial 'mode' will be search
+    mode = 'search'
+
+    # initial string settings
+    # blank previous and char was not escaped
+    prev = ''
+    escaped = false
+
+    # loop through the string
+    for i in [0..str.length-1]
+
+      # set current char
+      cur = str[i]
+
+      # if previous char was escaped blindly accept it
+      # and continue, be sure to clear escaped
+      if escaped 
+        escaped = false
+        obj[mode] += cur
+        prev = '' 
+        continue
+
+      # backslash, time to escape, add the
+      # char and just continue
+      if cur == "\\"
+        escaped = true
+        obj[mode] += cur
+        continue
+
+      # if it's a forward slash NOT prefixed by a backslash
+      # means it's time to switch modes
+      if cur == "/" and prev != "\\"
+
+        # swap to the appropriate mode
+        if mode == 'search'
+          mode = 'replace'
+          obj.isValid = true
+        else if mode == 'replace'
+          mode = 'modifier'
+        else
+          mode = 'unknown'
+
+        # since we swapped modes, don't store the current char
+        continue
+
+      # store current char in whatever mode we're in
+      obj[mode] += cur
+
+      # reset previous and do it all over again
+      prev = cur
+
+    # Invalid situations
+    # something in the modifier other than i, g or m
+    if obj.modifier != '' and obj.modifier.match(/[^igm]/) 
+      obj.isValid = false
+
+    # No replace string defined AND no trailing /
+    if mode == 'replace' and str[str.length-1] == '/'
+      obj.isValid = false
+
+    # return main obj
+    return obj
 
   # UTIL FUNCTIONS
 

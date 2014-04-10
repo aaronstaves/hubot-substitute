@@ -122,9 +122,27 @@ describe("Hubot-Substitute Functionality", function() {
         adapter.receive(new TextMessage(user, "s/their/there/"));
       });
 
+      // substitute remove found string
+      //
+      it("s/what does the fox say//", function(done) {
+          adapter.on("send", function(envelope, strings) {
+              try { 
+                expect(strings[0]).to.equal(user.name+": sometimes i wonder");
+                done();
+              } catch(e) { 
+                done(e);
+              }
+          });
+
+        adapter.receive(new TextMessage(user, "sometimes i wonder what does the fox say")); 
+        adapter.receive(new TextMessage(user, "s/what does the fox say//"));
+      });
+    });
+    describe("modifiers", function() { 
+
       // substitute woof for moo globally
       //
-      it("s/woof/moo/g", function(done) {
+      it("s/woof/moo/G", function(done) {
           adapter.on("send", function(envelope, strings) {
               try { 
                 expect(strings[0]).to.equal(user.name+": The cow goes moo moo");
@@ -138,21 +156,57 @@ describe("Hubot-Substitute Functionality", function() {
         adapter.receive(new TextMessage(user, "s/woof/moo/g"));
       });
 
-      // substitute remove found string
+      // substitute woof for moo globally
       //
-      it("s/what does the fox say//g", function(done) {
+      it("s/woof/moo/g", function(done) {
           adapter.on("send", function(envelope, strings) {
               try { 
-                expect(strings[0]).to.equal(user.name+": sometimes i wonder");
+                expect(strings[0]).to.equal(user.name+": The cow goes moo moo");
                 done();
               } catch(e) { 
                 done(e);
               }
           });
 
-        adapter.receive(new TextMessage(user, "sometimes i wonder what does the fox say")); 
-        adapter.receive(new TextMessage(user, "s/what does the fox say//g"));
+        adapter.receive(new TextMessage(user, "The cow goes woof moo")); 
+        adapter.receive(new TextMessage(user, "s/woof/moo/g"));
       });
+
+      // substitute woof for moo case insensitive 
+      //
+      it("s/woof/moo/i", function(done) {
+          adapter.on("send", function(envelope, strings) {
+              try { 
+                expect(strings[0]).to.equal(user.name+": The cow goes moo woof");
+                done();
+              } catch(e) { 
+                done(e);
+              }
+          });
+
+        adapter.receive(new TextMessage(user, "The cow goes WOOF woof")); 
+        adapter.receive(new TextMessage(user, "s/woof/moo/i"));
+      });
+
+      // substitute woof for moo case insensitive globally
+      // failing with multiple modifiers
+      it("s/woof/moo/Ig", function(done) {
+          adapter.on("send", function(envelope, strings) {
+              try { 
+                expect(strings[0]).to.equal(user.name+": The cow goes moo moo");
+                done();
+              } catch(e) { 
+                done(e);
+              }
+          });
+
+        adapter.receive(new TextMessage(user, "The cow goes WOOF woof")); 
+        adapter.receive(new TextMessage(user, "s/woof/moo/gi"));
+      });
+
+    });
+
+    describe("special chars", function() { 
 
       // string with escaped chars
       //
@@ -247,7 +301,7 @@ describe("Hubot-Substitute Functionality", function() {
           // chance to reply
           setTimeout(function() { 
             if (replied) { 
-              done( new Error("replied when shouldn't have, no replace string") );
+              done( new Error("replied with \""+replied+"\" when shouldn't have, no replace string") );
             }
             else {
               done(); 
@@ -256,11 +310,39 @@ describe("Hubot-Substitute Functionality", function() {
 
           // if it does reply, throw an error
           adapter.on("send", function(envelope, strings) {
-            replied = true;
+            replied = strings[0];
           });
 
         adapter.receive(new TextMessage(user, "The cow goes woofmoo")); 
         adapter.receive(new TextMessage(user, "s/woof/"));
+      });
+
+      // test too many slashes
+      //
+      it("s/woof/meow/quack", function(done) {
+          var replied = false;
+
+          // if doesn't reply we're good --
+          // there's probably a better way to do this, but for now
+          // it seems like 25ms is long enough to give the bot a 
+          // chance to reply
+          setTimeout(function() { 
+            if (replied) { 
+              done( new Error("replied with \""+replied+"\" when shouldn't have, no replace string") );
+            }
+            else {
+              done(); 
+            }
+          }, 25);
+
+          // if it does reply, throw an error
+          adapter.on("send", function(envelope, strings) {
+            console.log('reply');
+            replied = strings[0];
+          });
+
+        adapter.receive(new TextMessage(user, "The cow goes woof")); 
+        adapter.receive(new TextMessage(user, "s/woof/meow/quack"));
       });
     });
 });
