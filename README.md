@@ -44,3 +44,8 @@ aaron> The cow goes woof woof
 aaron> s/woo/moo/g
 Hubot> aaron: The cow goes moof moof
 ```
+```
+aaron> The cow goes woof woof
+guster> aaron s/woof/moo/g
+Hubot> aaron: The cow goes moo moo
+```

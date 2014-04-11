@@ -4,6 +4,7 @@
 # Commands:
 #   hubot <what did i say> - shows what hubot has stored for that user
 #   <anything> - hubot will take note of what you said.  This is unique per name/room
+#   <user>: s/find/replace/modifier - hubot will apply a regex to the last thing the user said and output the result
 #   s/find/replace/modifier - hubot will apply a regex to the last thing you said and output the result
 #
 # Notes:
@@ -70,10 +71,44 @@ module.exports = (robot) ->
 
         msg.send("#{username}: #{replaceText}")
 
-    # no record of anything the user said
-    else
-      msg.send("#{username}: I have no idea what you last said")
+  #
+  # listens to the regex s/find/replace/modifier
+  #
+  robot.hear /([^\s]+?):*\s+s\/.+/, (msg) ->
+  
+    # grab user match
+    user = robot.brain.userForName(msg.match[1])
+    if !user 
+      return
+    userId = user.id  
 
+    # grab the goodies
+    regExpObj = getRegExpObj(msg.match[0].replace(/[^\s]+?:*\s+/, ""))
+    return if !regExpObj.isValid
+
+    replace    = regExpObj.replace
+    modifier   = regExpObj.modifier
+    search     = RegExp(regExpObj.search, modifier)
+
+    userRoomId = userId+msg.message.room
+
+    # hubot has something in mind
+    if userRoomId and lastSaid[userRoomId]
+
+      username    = msg.message.user.name
+      origText    = lastSaid[userRoomId]
+      replaceText = origText.replace search, replace
+
+      # nothing was replaced, regex didn't match
+      if ( replaceText == origText ) 
+        msg.send("#{username}: There is no substitute for trying")
+
+      # display new text
+      else
+        # remove any (unintended?) trailing whitespace
+        replaceText = replaceText.replace(/\s+$/, "")
+
+        msg.send("#{user.name}: #{replaceText}")
 
   #
   # Hubot what did i say - shows what hubot has stored
